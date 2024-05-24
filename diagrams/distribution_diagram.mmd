@@ -1,0 +1,15 @@
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    spi[SPI CAN adapter]
+    db((CAN Distribution board))
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+    rotary[Rotary Tool]
+
+    t1 <--CAN via usb c cable--> db
+    sbc <--GPIO SPI--> spi <--RJ11 --> db
+    db <--CAN via usb c cable-->  t2  & rotary
+    t0 <-- unbilical cable--> primary
+    sbc <--USB-----> primary

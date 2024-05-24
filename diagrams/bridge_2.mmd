@@ -1,0 +1,6 @@
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    t0[tool]
+    primary["primary mcu with onboard transciever"]
+
+    sbc <--USB--> primary <--molex microfit--> t0 

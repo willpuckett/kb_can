@@ -1,0 +1,13 @@
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    u2c((U2C board))
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+
+    t1 <--Molex Minifit cable--> u2c
+    sbc <--USB--> u2c 
+    u2c <--Molex Mircofit cable-->  t2 
+    u2c <-- USB A/B with CAN signal--> primary
+    t0 <-- unbilical cable--> primary 
