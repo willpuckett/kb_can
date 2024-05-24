@@ -7,7 +7,7 @@ Klipper allows a host process to connect to a printer's mcu. Many printers have 
 As one adds more peripherals to a printer, the main mcu may begin to run out of available pins. Or, perhaps one wishes to add a concentration of I/O in an area a little further from the primary mcu (generally located in the *chassis*), and wishes to reduce wiring (cable) clutter back to a larger main board.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/clutter.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/clutter.jpeg"
          alt="A Cluttered Chassis">
     <figcaption>An example of a cluttered chassis. Note the difficulty of accessing lower layers of the board and RPi GPIO due to stacked daughter board.</figcaption>
 </figure>
@@ -29,7 +29,7 @@ An mcu doesn't create the final can signal directly. It communicates with a devi
 If your printer is working great, and you're happy with it, you don't need to add canbus. It won't make your printer better, or faster in and of itself. It's also worth noting that Klipper's canbus bridge mode will NOT be stable with only a single mcu, so switching your single mcu to canbus bridge would actually be a detriment. Canbus is a useful addition for people who need to add I/O to their printer, or who like to have more readily accessible ports for testing and experimenting with hardware. 
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/experimenting.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/experimenting.jpeg"
          alt="Canbus enables easy experimentation such as testing this mass dampened piezo on an FLSun SR">
     <figcaption>Canbus enables easy experimentation such as testing this mass dampened piezo probe on an FLSun SR</figcaption>
 </figure>
@@ -45,7 +45,7 @@ As mentioned earlier, canbus is two wires: can_h and can_l. These two wires are 
 Canbus is *terminated* at both ends by a 120Ω resistor. Proper termination helps ensure stability of the canbus line by reducing ringing.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/plug_types.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/plug_types.jpeg"
          alt="A U2C with different plug types labeled">
     <figcaption>A U2C with different plug types labeled</figcaption>
 </figure>
@@ -53,7 +53,7 @@ Canbus is *terminated* at both ends by a 120Ω resistor. Proper termination hel
 There isn't a standard can plug type. Some early boards for printers used usb c pd wires to carry the can signal and power. Many end users have strong expectations about how a usb c plug should work, though, and, coupled with the physical instability of the plug some users experienced on a rapidly moving toolhead, the choice proved less than ideal. Other boards might use screw terminals, molex minifit, molex microfit, or break out the data wires to jst-xh. Some devices use an xt30(2+2) plug. You'll probably need to be prepared to crimp cables to set up your canbus capable board, and you may need to spend some time troubleshooting the connection (for instance, rotating the plug 180 degrees to get the signal working on some devices using a coopted usb c cable). 
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/xt30_2_plus_2.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/xt30_2_plus_2.jpeg"
          alt="XT30 2+2 Plug">
     <figcaption>XT30 2+2
 </figcaption>
@@ -76,7 +76,7 @@ The U2C bridge does require power, and if you're hoping to power your sbc with i
 Perhaps the most popular use of canbus in Klipper is the toolhead board. A tool tends to be an I/O dense region, usually incorporating at minimum fans, a heater, an ADC for temperature measurements, a bed probe, and a stepper driver for the extruder. All the I/O from the tool can be wired to the toolhead board, and only the 2 canbus and 2 power wires need be routed back to the primary mcu or U2C (depending on topology). Additionally, most if not all toolhead boards have their own 5v regulator, bringing a little extra breathing room to an often heavily loaded 5v rail on the main mcu, perhaps creating headroom for a few extra leds.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/ebb42_mini_sb.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/ebb42_mini_sb.jpeg"
          alt="BTT EBB42 on Mini SB">
     <figcaption>BTT EBB42 on Mini SB</figcaption>
 </figure>
@@ -84,7 +84,7 @@ Perhaps the most popular use of canbus in Klipper is the toolhead board. A tool 
 Some printers have several tools configured and all available for use during a single print. Toolhead boards ensure the availability of ports and wiring simplicity for these tools.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/tap_changer.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/tap_changer.jpeg"
          alt="Mendel Max with TapChanger">
     <figcaption>Mendel Max with TapChanger used to switch between 1.75mm Sherpa and 2.85mm Orbiter</figcaption>
 </figure>
@@ -96,7 +96,7 @@ A canbus cable can also be an easy breakpoint for switching tools manually. For 
 Let's get our feet on the ground by examining a few possible canbus topologies. As we do, we'll try to think in terms of routing the golden duo—power and data—together on a single 4 wire cable, to keep runs clean.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/distribution_board.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/distribution_board.jpeg"
          alt="A CAN Distribution Board with SKR Pico in Bridge Mode">
     <figcaption>A CAN Distribution Board with SKR Pico in Bridge Mode</figcaption>
 </figure>
@@ -109,7 +109,7 @@ You probably wouldn't choose to lay out your canbus system like this now, but it
 The distribution board isn't doing any processing or switching of the can signal, it's just connecting the wires physically, and sometimes fusing the power rail to each connected device.
 
 
-![Distribution Board Block Diagram](https://pax.deno.dev/willpuckett/kb_can/diagrams/distribution_diagram.svg)
+![Distribution Board Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/distribution_diagram.svg)
 
 This topology would demonstrate a retrofit of a printer to have multiple tools and a rotary axis. The primary tool was NOT rewired from the primary mcu, the additional toolheads and rotary stepper were simply added on. It demonstrates that it is not necessary for the primary mcu to also be on canbus, as many older mcus (Arduino Mega, for instance) don't support it.
 
@@ -121,17 +121,17 @@ Building on the idea of a distribution board, and consolidating the host CAN ada
 
 #### Retrofit Version
 
-![U2C Block Diagram 1](https://pax.deno.dev/willpuckett/kb_can/diagrams/u2c_diagram_1.svg)
+![U2C Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_1.svg)
 
 This layout is topologically similar to the first layout. It would also be possible to connect some primary mcus to the U2C board by configuring them to output a CAN signal on the usb pins. In that case, the configuration would look as follows:
 
-![U2C Block Diagram 2](https://pax.deno.dev/willpuckett/kb_can/diagrams/u2c_diagram_2.svg)
+![U2C Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_2.svg)
 
 #### Clearing the Chassis
 
 Creating ample, unobstructed airflow in a chassis can be a challenge. Coupled with the increased difficulty that maintaining the variety of small, difficult to identify cables that run to a toolhead presents, it made sense for some people to stop using the ports for the primary toolhead on the primary pcb, and just connect them all via canbus.
 
-![U2C Block Diagram 3](https://pax.deno.dev/willpuckett/kb_can/diagrams/u2c_diagram_3.svg)
+![U2C Block Diagram 3](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_3.svg)
 
 The diagram doesn't really communicate how much more open a chassis feels without the primary tool cabling. It becomes much easier to work in the chassis area without the additional clutter, and reduces the likelihood of accidentally dislodging something. It also means that the printer doesn't have to be fully disconnected and unscrewed and flipped over to make a change to wiring at the toolhead, dramatically simplifying maintainence.
 
@@ -148,12 +148,12 @@ As interest in canbus grew, parts started to become unavailable during the chip 
 
 By compiling the mcu code with bridge mode support, many users were able to eliminate the need for a U2C altogether. 
 
-![Bridge Block Diagram 1](https://pax.deno.dev/willpuckett/kb_can/diagrams/bridge_1.svg)
+![Bridge Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_1.svg)
 
 However, most primary boards did not have a transceiver on board, meaning that users needed to add one, usually SN65HVD230. Often the transceiver was packaged on a [longer, kind of floppy board](https://www.amazon.com/gp/product/B084M5ZQST)--not ideal for the potentially high vibration of a printer chassis. Sourcing a [more square version](https://www.amazon.com/gp/product/B07ZT7LLSK) with monting holes proved useful. It could also be difficult to locate approprite pins on some mcus that were near each other, as well as supply a proper voltage in order to not fry the mcu input pins.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/skr_pico_bridge.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/skr_pico_bridge.jpeg"
          alt="An SKR Pico in Canbus bridge mode">
     <figcaption>An SKR Pico in Canbus bridge mode</figcaption>
 </figure>
@@ -163,14 +163,14 @@ However, most primary boards did not have a transceiver on board, meaning that u
 The small, loose wires going to the transceivers could also be prone to transients in the chassis. Manufactuers responded by beginning to produce primary mcus with onboard transceivers (Mellow Fly-D5, Mellow E3-V2, BTT SKR3/SKR3EZ for example). These boards served as natural bridges.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/fystec-sb-th.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/fystec-sb-th.jpeg"
          alt="A fystec sb can th board">
     <figcaption>A fystec sb can th board</figcaption>
 </figure>
 
 For users who manually switched tools between prints, bridge mode resulted in an much streamlined layout.
 
-![Bridge Block Diagram 2](https://pax.deno.dev/willpuckett/kb_can/diagrams/bridge_2.svg)
+![Bridge Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_2.svg)
 
 In this way, a user could switch tools, and then simply comment out an include to toggle between tools in `printer.cfg`, i.e.:
 
@@ -188,7 +188,7 @@ becomes
 
 to change from extruder to laser.
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/flsun_sr_bridge.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/flsun_sr_bridge.jpeg"
          alt="An Flsun SR configured with canbus bridge mode. The delta arms only hold one tool at a time, but tools can be switched at the effector plate">
     <figcaption>An Flsun SR configured with canbus bridge mode. The delta arms only hold one tool at a time, but tools can be switched at the effector plate. Note the U2C is only being used as a transceiver.</figcaption>
 </figure>
@@ -201,20 +201,20 @@ A host may also run multiple Klipper processes, called instances. Each instance 
 
 A multi-instance canbus topology might look like this:
 
-![A Multi-instance Block Diagram](https://pax.deno.dev/willpuckett/kb_can/diagrams/multi_1.svg)
+![A Multi-instance Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/multi_1.svg)
 
 We tended to build our topologies around a star shape, but canbus can be daisy chained as well. It would work perfectly well to do something like
 
-![Daisy Chain Block Diagram 1](https://pax.deno.dev/willpuckett/kb_can/diagrams/daisy_chain_1.svg)
+![Daisy Chain Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_1.svg)
 
 However, most boards don't break out ports for daisy chaining, and the cabling could end up being a little akward. Usually mostly star works well for tools, but if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, that would be just fine.
 
-![Daisy Chain Block Diagram 2](https://pax.deno.dev/willpuckett/kb_can/diagrams/daisy_chain_2.svg)
+![Daisy Chain Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_2.svg)
 
 It would also be possible to have multiple hosts on the canbus, and configure multiple mcus in canbus bridge mode, however it is not recommendable as the bandwith of the bus could quickly become saturated during a print.
 
 <figure>
-    <img src="https://pax.deno.dev/willpuckett/kb_can/images/non-recommended.jpeg"
+    <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/non-recommended.jpeg"
          alt="A non-recommended/experimental canbus setup. Flsun QQ-S Pro with each stepper on seperate mcus">
     <figcaption>A non-recommended/experimental canbus setup. Flsun QQ-S Pro with each stepper on seperate mcus</figcaption>
 </figure>
