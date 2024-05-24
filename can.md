@@ -1,6 +1,6 @@
 # Canbus: The Briefest of Introductions
 
-This document provides a conversational and ambling introduction to canbus, as well as several case studies of possible canbus configurtions and topologies. More technical information is available in the Klipper documentation, as well as cited throughout this text.
+This document provides a conversational and ambling introduction to canbus, as well as several case studies of possible canbus configurations and topologies. More technical information is available in the Klipper documentation, as well as cited throughout this text.
 
 Klipper allows a host process to connect to a printer's mcu. Many printers have a single mcu to which all I/O (steppers, sensors, heaters) are connected.
 
@@ -16,13 +16,13 @@ Klipper allows the use of multi-mcu in these cases. These additional mcus can be
 
 ## What is Canbus
 
-Canbus is a networking technology. CAN stands for Controller Area Network. We'll use the word canbus throughout this document to refer to CAN—it works better for search results, and disambiguates from the common English word, can. Originating from the early 1980's, canbus grew popular in the automotive industry to connect all the various pieces of a car, and for factory floor automation. Canbus runs on two wires, Can High (can_h), and Can Low (can_l). These two wires carry a differential signal, that is, the same magnitude signal where one is positive and the other negative, i.e. abs(can_l) = abs(can_h). By twisting the wires of this differential pair, greater resilence to interference is created, because the difference between the signals is still the same.
+Canbus is a networking technology. CAN stands for Controller Area Network. We'll use the word canbus throughout this document to refer to CAN—it works better for search results, and disambiguates from the common English word, can. Originating from the early 1980's, canbus grew popular in the automotive industry to connect all the various pieces of a car, and for factory floor automation. Canbus runs on two wires, Can High (can_h), and Can Low (can_l). These two wires carry a differential signal, that is, the same magnitude signal where one is positive and the other negative, i.e. abs(can_l) = abs(can_h). By twisting the wires of this differential pair, greater resilience to interference is created, because the difference between the signals is still the same.
 
 At a high level, canbus helps make I/O *plastic*, by adding a little or a lot just where it's needed. This sort of fluidity can make understanding canbus topology a little more challenging at first because so many different configurations are possible. 
 
 Not every mcu is canbus capable. Many STM32 and SAM mcus implement canbus in hardware. Canbus is implemented in software (in the PIO cores) on RP2040.
 
-An mcu doesn't create the final can signal directly. It communicates with a device called a *CAN transceiver* which creates the differential signal from two pins on the mcu. Some boards have a transciever built in, but for many older boards, you'll need to solder and wire one yourself. If you're building from the ground up, or shopping for new hardware to implement your canbus designs, it's probably preferrable to exclude boards without a transciever built in.
+An mcu doesn't create the final can signal directly. It communicates with a device called a *CAN transceiver* which creates the differential signal from two pins on the mcu. Some boards have a transceiver built in, but for many older boards, you'll need to solder and wire one yourself. If you're building from the ground up, or shopping for new hardware to implement your canbus designs, it's probably preferable to exclude boards without a transceiver built in.
 
 ## Motive, or, Do I Need Can?
 
@@ -63,11 +63,11 @@ That said, wiring is where canbus shines.
 
 ## The Canbus Bridge
 
-Klipper's host process runs on an sbc, so for it to talk to can devices, it will need to be attached to the canbus... Somehow... Most sbcs don't have canbus onboard (RK3568, RK3588, and RK3582 based devices do, but they'll need a transciever), so most users add can connectivity via either SPI or a USB adapter. SPI adapters tend to require a little more work to configure, and, as a result, USB adapters have probably become more popular. 
+Klipper's host process runs on an sbc, so for it to talk to can devices, it will need to be attached to the canbus... Somehow... Most sbcs don't have canbus onboard (RK3568, RK3588, and RK3582 based devices do, but they'll need a transceiver), so most users add can connectivity via either SPI or a USB adapter. SPI adapters tend to require a little more work to configure, and, as a result, USB adapters have probably become more popular. 
 
 This has been especially true since Klipper introduced canbus bridge mode. This mode allows capable mcus to be configured to bridge can communications via USB. 
 
-You might have seen devices such as the BTT U2C that operate solely as canbus bridges. These are very useful for working with older mcus that don't have can transcievers on board. They're probably a little easier to configure than soldering your own transciever. Many STM devices can be configured to output the canbus signal on the USB port, and these devices allow connecting those directly, avoiding searching for available pins and soldering all together.
+You might have seen devices such as the BTT U2C that operate solely as canbus bridges. These are very useful for working with older mcus that don't have can transceivers on board. They're probably a little easier to configure than soldering your own transceiver. Many STM devices can be configured to output the canbus signal on the USB port, and these devices allow connecting those directly, avoiding searching for available pins and soldering all together.
 
 The U2C bridge does require power, and if you're hoping to power your sbc with it, you'll have to get it from either your mcu's usb port, or so other available power pins. You may need to set a jumper to connect the usb port to the 5v rail, or solder over a diode on the usb VIN line. Consult your mcu's schematic and board drawings as necessary.
 
@@ -89,7 +89,7 @@ Some printers have several tools configured and all available for use during a s
     <figcaption>Mendel Max with TapChanger used to switch between 1.75mm Sherpa and 2.85mm Orbiter</figcaption>
 </figure>
 
-A canbus cable can also be an easy breakpoint for switching tools manually. For example, a delta printer with magballs and canbus could have an extruder and a laser mounted on seperate effector plates that can be switched out by unplugging the single can cable. Or, a MendelMax could be retrofitted with a [TapChanger](https://github.com/viesturz/tapchanger) and switch tools by simply lifting the tool off the shuttle, changing the cable, and toggling the configuraion in Klipper. (It's worth noting that canbus cables carrying power are NOT hot-swappable. Power the machine down completely before changing.) Such configurations save both costs and space by allowing sharing and reuse of a kinematic system with different tools. 
+A canbus cable can also be an easy breakpoint for switching tools manually. For example, a delta printer with magballs and canbus could have an extruder and a laser mounted on separate effector plates that can be switched out by unplugging the single can cable. Or, a MendelMax could be retrofitted with a [TapChanger](https://github.com/viesturz/tapchanger) and switch tools by simply lifting the tool off the shuttle, changing the cable, and toggling the configuration in Klipper. (It's worth noting that canbus cables carrying power are NOT hot-swappable. Power the machine down completely before changing.) Such configurations save both costs and space by allowing sharing and reuse of a kinematic system with different tools. 
 
 ## Topologies
 
@@ -133,9 +133,9 @@ Creating ample, unobstructed airflow in a chassis can be a challenge. Coupled wi
 
 ![U2C Block Diagram 3](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_3.svg)
 
-The diagram doesn't really communicate how much more open a chassis feels without the primary tool cabling. It becomes much easier to work in the chassis area without the additional clutter, and reduces the likelihood of accidentally dislodging something. It also means that the printer doesn't have to be fully disconnected and unscrewed and flipped over to make a change to wiring at the toolhead, dramatically simplifying maintainence.
+The diagram doesn't really communicate how much more open a chassis feels without the primary tool cabling. It becomes much easier to work in the chassis area without the additional clutter, and reduces the likelihood of accidentally dislodging something. It also means that the printer doesn't have to be fully disconnected and unscrewed and flipped over to make a change to wiring at the toolhead, dramatically simplifying maintenance.
 
-The removal of the primary tool from the primary mcu also has the advantage of putting less heat through the primary board, reducing cooling requirments in some cases. 
+The removal of the primary tool from the primary mcu also has the advantage of putting less heat through the primary board, reducing cooling requirements in some cases. 
 
 While on the subject of thermals, it's worth noting that canbus might not work as well for printers with enclosures that run at very high temps. For instance, the data sheet for STM32F072 states an ambient operating range of -40ºC to 85ºC, but the actual range for an early ebb board and all its components is probably lower. 
 
@@ -150,7 +150,7 @@ By compiling the mcu code with bridge mode support, many users were able to elim
 
 ![Bridge Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_1.svg)
 
-However, most primary boards did not have a transceiver on board, meaning that users needed to add one, usually SN65HVD230. Often the transceiver was packaged on a [longer, kind of floppy board](https://www.amazon.com/gp/product/B084M5ZQST)--not ideal for the potentially high vibration of a printer chassis. Sourcing a [more square version](https://www.amazon.com/gp/product/B07ZT7LLSK) with monting holes proved useful. It could also be difficult to locate approprite pins on some mcus that were near each other, as well as supply a proper voltage in order to not fry the mcu input pins.
+However, most primary boards did not have a transceiver on board, meaning that users needed to add one, usually SN65HVD230. Often the transceiver was packaged on a [longer, kind of floppy board](https://www.amazon.com/gp/product/B084M5ZQST)--not ideal for the potentially high vibration of a printer chassis. Sourcing a [more square version](https://www.amazon.com/gp/product/B07ZT7LLSK) with mounting holes proved useful. It could also be difficult to locate appropriate pins on some mcus that were near each other, as well as supply a proper voltage in order to not fry the mcu input pins.
 
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/skr_pico_bridge.jpeg"
@@ -160,7 +160,7 @@ However, most primary boards did not have a transceiver on board, meaning that u
 
 #### Multitool
 
-The small, loose wires going to the transceivers could also be prone to transients in the chassis. Manufactuers responded by beginning to produce primary mcus with onboard transceivers (Mellow Fly-D5, Mellow E3-V2, BTT SKR3/SKR3EZ for example). These boards served as natural bridges.
+The small, loose wires going to the transceivers could also be prone to transients in the chassis. Manufacturers responded by beginning to produce primary mcus with onboard transceivers (Mellow Fly-D5, Mellow E3-V2, BTT SKR3/SKR3EZ for example). These boards served as natural bridges.
 
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/fystec-sb-th.jpeg"
@@ -207,16 +207,16 @@ We tended to build our topologies around a star shape, but canbus can be daisy c
 
 ![Daisy Chain Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_1.svg)
 
-However, most boards don't break out ports for daisy chaining, and the cabling could end up being a little akward. Usually mostly star works well for tools, but if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, that would be just fine.
+However, most boards don't break out ports for daisy chaining, and the cabling could end up being a little awkward. Usually mostly star works well for tools, but if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, that would be just fine.
 
 ![Daisy Chain Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_2.svg)
 
-It would also be possible to have multiple hosts on the canbus, and configure multiple mcus in canbus bridge mode, however it is not recommendable as the bandwith of the bus could quickly become saturated during a print.
+It would also be possible to have multiple hosts on the canbus, and configure multiple mcus in canbus bridge mode, however it is not recommendable as the bandwidth of the bus could quickly become saturated during a print.
 
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/non-recommended.jpeg"
-         alt="A non-recommended/experimental canbus setup. Flsun QQ-S Pro with each stepper on seperate mcus">
-    <figcaption>A non-recommended/experimental canbus setup. Flsun QQ-S Pro with each stepper on seperate mcus</figcaption>
+         alt="A non-recommended/experimental canbus setup. Flsun QQ-S Pro with each stepper on separate mcus">
+    <figcaption>A non-recommended/experimental canbus setup. Flsun QQ-S Pro with each stepper on separate mcus</figcaption>
 </figure>
 
 ## Flashing & Updating
@@ -229,7 +229,7 @@ While it is possible to build and install the firmware over usb, it can be diffi
 
 Using canbus means you will have more mcus to install and update software on. If you have a couple of printers, flashing and updating becomes even more cumbersome. 
 
-Luckily, other people have faced these issues as well, and come up with some brillant solutions.
+Luckily, other people have faced these issues as well, and come up with some brilliant solutions.
 
 Katapult is a bootloader that allows the mcu to listen over the canbus interface, go into flashing mode, and accept and flash firmware via canbus.
 
@@ -257,7 +257,7 @@ Klipper is moving toward including automated updates over the course of this yea
 
 Mosts hosts will automatically name the first canbus bridge "can0," and additional bridges as "can1," "can2," etc, using a system called *udev*. For a general introduction to the *udev system*, you might want to scan [Writing udev Rules](https://www.reactivated.net/writing_udev_rules.html). However, without additional configuration, these names can change depending on the order in which the usb-can bridges are connected, making them inconsistent and therefore unreliable for addressing by different instances, especially if devices are powered on and off automatically. In multi-instance installs, where each instance has its own canbus (aka bridge mode mcu), consistent names become necessary to ensure each instance is connected to the appropriate printer.
 
-These instructions were written on Debian running on *x86_64*, but should be applicable to Armbian systems as well. For rpios, you may need to use an `ifconfig` command in step 6's `up` directive in lieu of the `ip` command 🤷🏻‍♂️.
+These instructions were written on Debian running on *x86_64*, but should be applicable to Armbian systems as well. For rpiOS, you may need to use an `ifconfig` command in step 6's `up` directive in lieu of the `ip` command 🤷🏻‍♂️.
 
 ### Consistently Naming Canbus Interfaces with udev Rules
 
