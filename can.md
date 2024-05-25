@@ -109,7 +109,7 @@ You probably wouldn't choose to lay out your canbus system like this now, but it
 The distribution board isn't doing any processing or switching of the can signal, it's just connecting the wires physically, and sometimes fusing the power rail to each connected device.
 
 
-![Distribution Board Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/distribution_diagram.svg)
+![Distribution Board Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/distribution_diagram.png)
 
 This topology would demonstrate a retrofit of a printer to have multiple tools and a rotary axis. The primary tool was NOT rewired from the primary mcu, the additional toolheads and rotary stepper were simply added on. It demonstrates that it is not necessary for the primary mcu to also be on canbus, as many older mcus (Arduino Mega, for instance) don't support it.
 
@@ -121,17 +121,17 @@ Building on the idea of a distribution board, and consolidating the host CAN ada
 
 #### Retrofit Version
 
-![U2C Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_1.svg)
+![U2C Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_1.png)
 
 This layout is topologically similar to the first layout. It would also be possible to connect some primary mcus to the U2C board by configuring them to output a CAN signal on the usb pins. In that case, the configuration would look as follows:
 
-![U2C Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_2.svg)
+![U2C Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_2.png)
 
 #### Clearing the Chassis
 
 Creating ample, unobstructed airflow in a chassis can be a challenge. Coupled with the increased difficulty that maintaining the variety of small, difficult to identify cables that run to a toolhead presents, it made sense for some people to stop using the ports for the primary toolhead on the primary pcb, and just connect them all via canbus.
 
-![U2C Block Diagram 3](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_3.svg)
+![U2C Block Diagram 3](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_3.png)
 
 The diagram doesn't really communicate how much more open a chassis feels without the primary tool cabling. It becomes much easier to work in the chassis area without the additional clutter, and reduces the likelihood of accidentally dislodging something. It also means that the printer doesn't have to be fully disconnected and unscrewed and flipped over to make a change to wiring at the toolhead, dramatically simplifying maintenance.
 
@@ -148,7 +148,7 @@ As interest in canbus grew, parts started to become unavailable during the chip 
 
 By compiling the mcu code with bridge mode support, many users were able to eliminate the need for a U2C altogether. 
 
-![Bridge Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_1.svg)
+![Bridge Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_1.png)
 
 However, most primary boards did not have a transceiver on board, meaning that users needed to add one, usually SN65HVD230. Often the transceiver was packaged on a [longer, kind of floppy board](https://www.amazon.com/gp/product/B084M5ZQST)--not ideal for the potentially high vibration of a printer chassis. Sourcing a [more square version](https://www.amazon.com/gp/product/B07ZT7LLSK) with mounting holes proved useful. It could also be difficult to locate appropriate pins on some mcus that were near each other, as well as supply a proper voltage in order to not fry the mcu input pins.
 
@@ -170,7 +170,7 @@ The small, loose wires going to the transceivers could also be prone to transien
 
 For users who manually switched tools between prints, bridge mode resulted in an much streamlined layout.
 
-![Bridge Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_2.svg)
+![Bridge Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_2.png)
 
 In this way, a user could switch tools, and then simply comment out an include to toggle between tools in `printer.cfg`, i.e.:
 
@@ -201,15 +201,15 @@ A host may also run multiple Klipper processes, called instances. Each instance 
 
 A multi-instance canbus topology might look like this:
 
-![A Multi-instance Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/multi_1.svg)
+![A Multi-instance Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/multi_1.png)
 
 We tended to build our topologies around a star shape, but canbus can be daisy chained as well. It would work perfectly well to do something like
 
-![Daisy Chain Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_1.svg)
+![Daisy Chain Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_1.png)
 
 However, most boards don't break out ports for daisy chaining, and the cabling could end up being a little awkward. Usually mostly star works well for tools, but if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, that would be just fine.
 
-![Daisy Chain Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_2.svg)
+![Daisy Chain Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_2.png)
 
 It would also be possible to have multiple hosts on the canbus, and configure multiple mcus in canbus bridge mode, however it is not recommendable as the bandwidth of the bus could quickly become saturated during a print.
 
