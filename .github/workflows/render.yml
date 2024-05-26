@@ -16,7 +16,7 @@ jobs:
       - name: Install and Build 🔧 # Generate pngs from mermaid diagrams and use full urls for them in the markdown so it can be linked in the KB
         run: |
           bunx @mermaid-js/mermaid-cli mmdc -i can.md -o can.md -e png 
-          sed 's@/kb_can/index-@https://willpuckett.github.io/kb_can/index-@g' can.md > index.md
+          sed 's@![diagram](./can-@![diagram](https://willpuckett.github.io/kb_can/can-@g' can.md > index.md
           rm can.md
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
