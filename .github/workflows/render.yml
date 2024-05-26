@@ -13,9 +13,10 @@ jobs:
         uses: pkgxdev/setup@v1
         with:
             +: bun
-      - name: Install and Build 🔧 # This example project is built using npm and outputs the result to the 'build' folder. Replace with the commands required to build your project, or remove this step entirely if your site is pre-built.
+      - name: Install and Build 🔧 # Generate pngs from mermaid diagrams and use full urls for them in the markdown so it can be linked in the KB
         run: |
-          bunx @mermaid-js/mermaid-cli mmdc -i can.md -o index.md -e png
+          bunx @mermaid-js/mermaid-cli mmdc -i can.md -o index.md -e png 
+          sed 's@/kb_can/index-@https://willpuckett.github.io/kb_can/index-@g' index.md > index.md
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
