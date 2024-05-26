@@ -109,7 +109,23 @@ You probably wouldn't choose to lay out your canbus system like this now, but it
 The distribution board isn't doing any processing or switching of the can signal, it's just connecting the wires physically, and sometimes fusing the power rail to each connected device.
 
 
-![Distribution Board Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/distribution_diagram.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    spi[SPI CAN adapter]
+    db((CAN Distribution board))
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+    rotary[Rotary Tool]
+
+    t1 <--CAN via usb c cable--> db
+    sbc <--GPIO SPI--> spi <--RJ11 --> db
+    db <--CAN via usb c cable-->  t2  & rotary
+    t0 <-- umbilical cable--> primary
+    sbc <--USB-----> primary
+```
 
 This topology would demonstrate a retrofit of a printer to have multiple tools and a rotary axis. The primary tool was NOT rewired from the primary mcu, the additional toolheads and rotary stepper were simply added on. It demonstrates that it is not necessary for the primary mcu to also be on canbus, as many older mcus (Arduino Mega, for instance) don't support it.
 
@@ -121,17 +137,59 @@ Building on the idea of a distribution board, and consolidating the host CAN ada
 
 #### Retrofit Version
 
-![U2C Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_1.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    u2c((U2C board))
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+
+    t1 <--Molex Minifit cable--> u2c
+    sbc <--USB--> u2c 
+    u2c <--Molex Mircofit cable-->  t2  
+    t0 <-- umbilical cable--> primary
+    sbc <--USB-----> primary
+```
 
 This layout is topologically similar to the first layout. It would also be possible to connect some primary mcus to the U2C board by configuring them to output a CAN signal on the usb pins. In that case, the configuration would look as follows:
 
-![U2C Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_2.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    u2c((U2C board))
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+
+    t1 <--Molex Minifit cable--> u2c
+    sbc <--USB--> u2c 
+    u2c <--Molex Mircofit cable-->  t2 
+    u2c <-- USB A/B with CAN signal--> primary
+    t0 <-- umbilical cable--> primary 
+```
 
 #### Clearing the Chassis
 
 Creating ample, unobstructed airflow in a chassis can be a challenge. Coupled with the increased difficulty that maintaining the variety of small, difficult to identify cables that run to a toolhead presents, it made sense for some people to stop using the ports for the primary toolhead on the primary pcb, and just connect them all via canbus.
 
-![U2C Block Diagram 3](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/u2c_diagram_3.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    u2c((U2C board))
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+
+    t0 <--Screw terminal--> u2c
+    sbc <--USB--> u2c 
+    u2c <--Molex Mircofit cable--> t1 
+    u2c <--Molex Minifit cable-->  t2 
+    u2c <-- USB with CAN signal--> primary
+```
 
 The diagram doesn't really communicate how much more open a chassis feels without the primary tool cabling. It becomes much easier to work in the chassis area without the additional clutter, and reduces the likelihood of accidentally dislodging something. It also means that the printer doesn't have to be fully disconnected and unscrewed and flipped over to make a change to wiring at the toolhead, dramatically simplifying maintenance.
 
@@ -148,7 +206,19 @@ As interest in canbus grew, parts started to become unavailable during the chip 
 
 By compiling the mcu code with bridge mode support, many users were able to eliminate the need for a U2C altogether. 
 
-![Bridge Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_1.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    transceiver[SN65HVD230 CAN transceiver]
+    wago[Wago locking lever]
+    t0[primary tool]
+    t1[secondary tool]
+    t2[tertiary tool]
+    primary[primary mcu]
+
+    sbc <--USB--> primary <--dupont--> transceiver
+    transceiver <--> wago <--> t0 & t1 & t2
+```
 
 However, most primary boards did not have a transceiver on board, meaning that users needed to add one, usually SN65HVD230. Often the transceiver was packaged on a [longer, kind of floppy board](https://www.amazon.com/gp/product/B084M5ZQST)--not ideal for the potentially high vibration of a printer chassis. Sourcing a [more square version](https://www.amazon.com/gp/product/B07ZT7LLSK) with mounting holes proved useful. It could also be difficult to locate appropriate pins on some mcus that were near each other, as well as supply a proper voltage in order to not fry the mcu input pins.
 
@@ -170,7 +240,14 @@ The small, loose wires going to the transceivers could also be prone to transien
 
 For users who manually switched tools between prints, bridge mode resulted in an much streamlined layout.
 
-![Bridge Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/bridge_2.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    t0[tool]
+    primary["primary mcu with onboard transceiver"]
+
+    sbc <--USB--> primary <--molex microfit--> t0 
+```
 
 In this way, a user could switch tools, and then simply comment out an include to toggle between tools in `printer.cfg`, i.e.:
 
@@ -201,15 +278,48 @@ A host may also run multiple Klipper processes, called instances. Each instance 
 
 A multi-instance canbus topology might look like this:
 
-![A Multi-instance Block Diagram](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/multi_1.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    t0[tool]
+    t1[tool]
+    t2[tool]
+    primary0["primary mcu with onboard transceiver"]
+    primary1["primary mcu with onboard transceiver"]
+    primary2["primary mcu with onboard transceiver"]
+
+    sbc <--USB---> primary0 <--molex microfit--> t0 
+    sbc <--USB---> primary1 <--molex microfit--> t1 
+    sbc <--USB---> primary2 <--molex microfit--> t2 
+```
 
 We tended to build our topologies around a star shape, but canbus can be daisy chained as well. It would work perfectly well to do something like
 
-![Daisy Chain Block Diagram 1](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_1.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    t0[tool]
+    t1[tool]
+    t2[tool]
+    primary["primary mcu with onboard transciever"]
+
+    sbc <--USB--> primary <--molex microfit--> t0 
+    t0 <--molex microfit--> t1 <--molex microfit--> t2
+```
 
 However, most boards don't break out ports for daisy chaining, and the cabling could end up being a little awkward. Usually mostly star works well for tools, but if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, that would be just fine.
 
-![Daisy Chain Block Diagram 2](https://raw.githubusercontent.com/willpuckett/kb_can/master/diagrams/daisy_chain_2.png)
+```mermaid
+graph TD;
+    sbc["Klipper Host (Raspberry Pi)"]
+    x[gantry mounted x motor & endstop]
+    t0[tool]
+    t1[tool]
+    primary["primary mcu with onboard transciever"]
+
+    sbc <--USB--> primary <--molex microfit--> x 
+    x <--molex microfit--> t0 & t1
+```
 
 It would also be possible to have multiple hosts on the canbus, and configure multiple mcus in canbus bridge mode, however it is not recommendable as the bandwidth of the bus could quickly become saturated during a print.
 
@@ -269,7 +379,7 @@ These instructions were written on Debian running on *x86_64*, but should be app
 
 4. Open `/etc/udev/rules.d/z21_persistent-local.rules` in your editor of choice
 
-5. Subtitiuting the serial number you found in step 3, add the following line. (Since your system likely automatically assigns names such as "can0," "can1," "can2" etc to canbus devices, use a string such as "canalpha," "canbeta," or "cangamma" for YOUR_CHOSEN_CANBUS_NAME):
+5. Substituting the serial number you found in step 3, add the following line. (Since your system likely automatically assigns names such as "can0," "can1," "can2" etc to canbus devices, use a string such as "canalpha," "canbeta," or "cangamma" for YOUR_CHOSEN_CANBUS_NAME):
 
 ```
 SUBSYSTEM=="net", ACTION=="add", ATTRS{serial}=="YOUR_SERIAL", NAME="YOUR_CHOSEN_CANBUS_NAME"
@@ -294,5 +404,5 @@ iface YOUR_CHOSEN_CANBUS_NAME can static
 
 Once the interface is properly configured as above, you can simply add a  `canbus_interface: YOUR_CHOSEN_CANBUS_NAME` line to your `[mcu]` object in your `printer.cfg` that lists the named interface you just created.
 
-If you use katapult, you'll also need to use the `-i YOUR_CHOSEN_CANBUS_NAME` option when your run `flash_can.py` to set the appropriate interface.
+If you use Katapult, you'll also need to use the `-i YOUR_CHOSEN_CANBUS_NAME` option when your run `flash_can.py` to set the appropriate interface.
 
