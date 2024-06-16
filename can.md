@@ -16,13 +16,19 @@ Klipper allows the use of multi-mcu in these cases. These additional mcus can be
 
 ## What is Canbus
 
-Canbus is a networking technology. CAN stands for Controller Area Network. We'll use the word canbus throughout this document to refer to CAN—it works better for search results, and disambiguates from the common English word, can. Originating from the early 1980's, canbus grew popular in the automotive industry to connect all the various pieces of a car, and for factory floor automation. Canbus runs on two wires, Can High (can_h), and Can Low (can_l). These two wires carry a differential signal, that is, the same magnitude signal where one is positive and the other negative, i.e. abs(can_l) = abs(can_h). By twisting the wires of this differential pair, greater resilience to interference is created, because the difference between the signals is still the same.
+Canbus is a linear network topology. CAN stands for Controller Area Network. We'll use the word canbus throughout this document to refer to CAN—it works better for search results, and disambiguates from the common English word, can. Originating from the early 1980's, canbus grew popular in the automotive industry to connect all the various pieces of a car, and for factory floor automation. Canbus runs on two wires, Can High (can_h), and Can Low (can_l). These two wires carry a differential signal, that is, the same magnitude signal where one is positive and the other negative, i.e. abs(can_l) = abs(can_h). By twisting the wires of this differential pair, greater resilience to interference is created, because the difference between the signals is still the same.
+
+The linear topology of canbus means that each device on the bus can communicate with every other device. This is in contrast to a star topology, where each device communicates with a central hub, and the hub communicates with each device. 
+
+Canbus is terminated at both ends of the line. This termination helps to reduce ringing on the line, and is usually a 120Ω resistor. Canbus can also be terminated in a split termination scheme, in which two 60Ω resistors connected are connected in series between can_h and can_l, and a capacitor connected to ground is placed between them.
 
 At a high level, canbus helps make I/O *plastic*, by adding a little or a lot just where it's needed. This sort of fluidity can make understanding canbus topology a little more challenging at first because so many different configurations are possible. 
 
 Not every mcu is canbus capable. Many STM32 and SAM mcus implement canbus in hardware. Canbus is implemented in software (in the PIO cores) on RP2040.
 
-An mcu doesn't create the final can signal directly. It communicates with a device called a *CAN transceiver* which creates the differential signal from two pins on the mcu. Some boards have a transceiver built in, but for many older boards, you'll need to solder and wire one yourself. If you're building from the ground up, or shopping for new hardware to implement your canbus designs, it's probably preferable to exclude boards without a transceiver built in.
+An mcu doesn't create the final CAN signal directly. It communicates with a device called a *CAN transceiver* which creates the differential signal from two pins on the mcu. Some boards have a transceiver built in, but for many older boards, you'll need to solder and/or wire one yourself. If you're building from the ground up, or shopping for new hardware to implement your canbus designs, it's probably preferable to exclude boards without a transceiver built in.
+
+Klipper implements CAN 2.0, which has a maximum speed of 1000000 bits per second. The newer CAN FD (Flexible Data Rate) has a maximum speed of 8000000 bits per second, but is not currently supported by Klipper. CAN FD is backwards compatible with CAN 2.0, and some newer devices may feature a CAN FD transceiver, which will work just fine with Klipper's CAN 2.0 implementation.
 
 ## Motive, or, Do I Need Can?
 
@@ -40,9 +46,9 @@ Canbus is especially convenient for parts of the printer that might be further a
 
 ## Wiring/Topology
 
-As mentioned earlier, canbus is two wires: can_h and can_l. These two wires are a shared bus, and connect to each device on the canbus. Many users also route power along with the CAN wires. 
+As mentioned earlier, canbus is two wires: can_h and can_l. These two wires are a linear network topology, and connect to each device on the canbus. Many users also route power along with the CAN wires. 
 
-Canbus is *terminated* at both ends by a 120Ω resistor. Proper termination helps ensure stability of the canbus line by reducing ringing.
+Canbus is *terminated* at both ends by either a 120Ω resistor, or a split termination scheme. Proper termination helps ensure stability of the canbus line by reducing ringing.
 
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/plug_types.jpeg"
@@ -63,17 +69,19 @@ That said, wiring is where canbus shines.
 
 ## The Canbus Bridge
 
-Klipper's host process runs on an sbc, so for it to talk to can devices, it will need to be attached to the canbus... Somehow... Most sbcs don't have canbus onboard (RK3568, RK3588, and RK3582 based devices do, but they'll need a transceiver), so most users add can connectivity via either SPI or a USB adapter. SPI adapters tend to require a little more work to configure, and, as a result, USB adapters have probably become more popular. 
+Klipper's host process runs on an sbc, so for it to talk to can devices, it will need to be attached to the canbus... Somehow... Most sbcs don't have canbus onboard (RK3568, RK3588, and RK3582 based devices do, but they'll need a transceiver), so most users add CAN connectivity via either SPI or a USB adapter. SPI adapters tend to require a little more work to configure, and, as a result, USB adapters have probably become more popular. 
 
-This has been especially true since Klipper introduced canbus bridge mode. This mode allows capable mcus to be configured to bridge can communications via USB. 
+This has been especially true since Klipper introduced canbus bridge mode. This mode allows capable mcus to be configured to bridge CAN communications via USB. 
 
 You might have seen devices such as the BTT U2C that operate solely as canbus bridges. These are very useful for working with older mcus that don't have can transceivers on board. They're probably a little easier to configure than soldering your own transceiver. Many STM devices can be configured to output the canbus signal on the USB port, and these devices allow connecting those directly, avoiding searching for available pins and soldering all together.
 
-The U2C bridge does require power, and if you're hoping to power your sbc with it, you'll have to get it from either your mcu's usb port, or so other available power pins. You may need to set a jumper to connect the usb port to the 5v rail, or solder over a diode on the usb VIN line. Consult your mcu's schematic and board drawings as necessary.
+The U2C bridge does require power, and if you're hoping to power your sbc with it, you'll have to get it from either your mcu's usb port, or so other available power pins. You may need to set a jumper to connect the usb port to the 5v rail, or solder over a diode on the usb VIN line. Consult your board's schematic as necessary.
 
 ## Toolhead Boards
 
-Perhaps the most popular use of canbus in Klipper is the toolhead board. A tool tends to be an I/O dense region, usually incorporating at minimum fans, a heater, an ADC for temperature measurements, a bed probe, and a stepper driver for the extruder. All the I/O from the tool can be wired to the toolhead board, and only the 2 canbus and 2 power wires need be routed back to the primary mcu or U2C (depending on topology). Additionally, most if not all toolhead boards have their own 5v regulator, bringing a little extra breathing room to an often heavily loaded 5v rail on the main mcu, perhaps creating headroom for a few extra leds.
+Perhaps the most popular use of canbus in Klipper is the toolhead board. A tool tends to be an I/O dense region, usually incorporating at minimum fans, a heater, an ADC for temperature measurements, a bed probe, and a stepper driver for the extruder. All the I/O from the tool can be wired to the toolhead board, and only the 2 canbus and 2 power wires need be routed back to the primary mcu or U2C (depending on topology). Additionally, most if not all toolhead boards have their own 5v regulator, bringing a little extra breathing room to an often heavily loaded 5v rail on the main mcu.
+
+Utilizing a CAN Bus setup offers significant advantages in terms of modularity and flexibility. By reducing the amount of wiring needed it can help to make the overall setup easier to manage and modify, allowing for such things as different toolheads to be swapped out easily and quickly managed through the configuration files.
 
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/ebb42_mini_sb.jpeg"
@@ -89,11 +97,11 @@ Some printers have several tools configured and all available for use during a s
     <figcaption>Mendel Max with TapChanger used to switch between 1.75mm Sherpa and 2.85mm Orbiter</figcaption>
 </figure>
 
-A canbus cable can also be an easy breakpoint for switching tools manually. For example, a delta printer with magballs and canbus could have an extruder and a laser mounted on separate effector plates that can be switched out by unplugging the single can cable. Or, a MendelMax could be retrofitted with a [TapChanger](https://github.com/viesturz/tapchanger) and switch tools by simply lifting the tool off the shuttle, changing the cable, and toggling the configuration in Klipper. (It's worth noting that canbus cables carrying power are NOT hot-swappable. Power the machine down completely before changing.) Such configurations save both costs and space by allowing sharing and reuse of a kinematic system with different tools. 
+A canbus cable can also be an easy breakpoint for modular setups, which involve switching tools manually and toggling a few lines in printer.cfg. For example, a delta printer with magballs and canbus could have an extruder and a laser mounted on separate effector plates that can be switched out by powering down the printer and unplugging the single can cable. Or, a MendelMax could be retrofitted with a [TapChanger](https://github.com/viesturz/tapchanger) and switch tools by powering down, lifting the tool off the shuttle, changing the cable, and toggling the configuration in Klipper. (It's worth noting that canbus cables carrying power are NOT hot-swappable. Power the machine down completely before changing.) Such configurations save both costs and space by allowing sharing and reuse of a kinematic system with different tools. 
 
 ## Topologies
 
-Let's get our feet on the ground by examining a few possible canbus topologies. As we do, we'll try to think in terms of routing the golden duo—power and data—together on a single 4 wire cable, to keep runs clean.
+Let's get our feet on the ground by examining a few possible canbus topologies. Terminating nodes in the following scenario diagrams are represented by a red border with double side edges. Non-terminated CAN elements are green, and non-CAN nodes are blue.
 
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/distribution_board.jpeg"
@@ -105,29 +113,35 @@ Let's get our feet on the ground by examining a few possible canbus topologies. 
 
 You probably wouldn't choose to lay out your canbus system like this now, but it's worth covering first as early systems often worked this way.
 
-
-The distribution board isn't doing any processing or switching of the can signal, it's just connecting the wires physically, and sometimes fusing the power rail to each connected device.
+The distribution board isn't doing any processing or switching of the can signal, it's just connecting the wires physically, and sometimes fusing the power rail to each connected device. Even though it may look like a branching star topology, it's still a linear network topology because all devices are communicating directly with each other.
 
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    spi[SPI CAN adapter]
-    db((CAN Distribution board))
-    t0[primary tool]
-    t1[secondary tool]
-    t2[tertiary tool]
-    primary[primary mcu]
-    rotary[Rotary Tool]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
 
-    t1 <--CAN via usb c cable--> db
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    spi[[SPI CAN adapter]]:::term
+    db((CAN Distribution board)):::can
+    t0[primary tool]:::nc
+    t1["secondary tool(t0)"]:::can
+    t2[["tertiary tool(t2)"]]:::term
+    primary[primary mcu]:::nc
+    rotary["Rotary Tool(t1)"]:::can
+
+    t1 <--CAN via short usb c cable--> db
     sbc <--GPIO SPI--> spi <--RJ11 --> db
-    db <--CAN via usb c cable-->  t2  & rotary
-    t0 <-- umbilical cable--> primary
-    sbc <--USB-----> primary
+    db <--CAN via short usb c cable--> rotary
+    db <--CAN via LONG usb c cable----> t2
+    sbc <--USB----> primary
+    primary <-- umbilical cable--> t0
 ```
 
 This topology would demonstrate a retrofit of a printer to have multiple tools and a rotary axis. The primary tool was NOT rewired from the primary mcu, the additional toolheads and rotary stepper were simply added on. It demonstrates that it is not necessary for the primary mcu to also be on canbus, as many older mcus (Arduino Mega, for instance) don't support it.
+
+Termination would be on the spi can adapter (it's soldered on and not jumperable), and on the last used slot of the distribution board. The device with the longest cable should be placed on this slot and terminated, in order to maximize signal integrity.
 
 ![An example of a (coopted) USB C canbus distribution board](https://biqu.equipment/cdn/shop/products/1_74578e99-1a9c-45e9-ae57-3d23cb5cf975_1220x1220_crop_center.jpg?v=1702633221)
 
@@ -139,12 +153,16 @@ Building on the idea of a distribution board, and consolidating the host CAN ada
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    u2c((U2C board))
-    t0[primary tool]
-    t1[secondary tool]
-    t2[tertiary tool]
-    primary[primary mcu]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    u2c((U2C board)):::can
+    t0[primary tool]:::nc
+    t1[[secondary tool]]:::term
+    t2[[tertiary tool]]:::term
+    primary[primary mcu]:::nc
 
     t1 <--Molex Minifit cable--> u2c
     sbc <--USB--> u2c 
@@ -157,12 +175,16 @@ This layout is topologically similar to the first layout. It would also be possi
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    u2c((U2C board))
-    t0[primary tool]
-    t1[secondary tool]
-    t2[tertiary tool]
-    primary[primary mcu]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    u2c((U2C board)):::can
+    t0[primary tool]:::nc
+    t1[[secondary tool]]:::term
+    t2[[tertiary tool]]:::term
+    primary[primary mcu]:::can
 
     t1 <--Molex Minifit cable--> u2c
     sbc <--USB--> u2c 
@@ -177,12 +199,18 @@ Creating ample, unobstructed airflow in a chassis can be a challenge. Coupled wi
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    u2c((U2C board))
-    t0[primary tool]
-    t1[secondary tool]
-    t2[tertiary tool]
-    primary[primary mcu]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    u2c((U2C board)):::can
+    t0[["`primary tool
+   (long cable)`"]]:::term
+    t1[secondary tool]:::can
+    t2[["`tertiary tool
+    (long cable)`"]]:::term
+    primary[primary mcu]:::can
 
     t0 <--Screw terminal--> u2c
     sbc <--USB--> u2c 
@@ -190,6 +218,8 @@ graph TD;
     u2c <--Molex Minifit cable-->  t2 
     u2c <-- USB with CAN signal--> primary
 ```
+
+Here, we would terminate the two devices with the longest cables. 
 
 The diagram doesn't really communicate how much more open a chassis feels without the primary tool cabling. It becomes much easier to work in the chassis area without the additional clutter, and reduces the likelihood of accidentally dislodging something. It also means that the printer doesn't have to be fully disconnected and unscrewed and flipped over to make a change to wiring at the toolhead, dramatically simplifying maintenance.
 
@@ -208,17 +238,24 @@ By compiling the mcu code with bridge mode support, many users were able to elim
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    transceiver[SN65HVD230 CAN transceiver]
-    wago[Wago locking lever]
-    t0[primary tool]
-    t1[secondary tool]
-    t2[tertiary tool]
-    primary[primary mcu]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    transceiver[SN65HVD230 CAN transceiver]:::can
+    wago[Wago locking lever]:::can
+    t0[["`primary tool
+    (long wire)`"]]:::term
+    t1[secondary tool]:::can
+    t2[["`tertiary tool
+    (long wire)`"]]:::term
+    primary[primary mcu]:::can
 
     sbc <--USB--> primary <--dupont--> transceiver
     transceiver <--> wago <--> t0 & t1 & t2
 ```
+
 
 However, most primary boards did not have a transceiver on board, meaning that users needed to add one, usually SN65HVD230. Often the transceiver was packaged on a [longer, kind of floppy board](https://www.amazon.com/gp/product/B084M5ZQST)--not ideal for the potentially high vibration of a printer chassis. Sourcing a [more square version](https://www.amazon.com/gp/product/B07ZT7LLSK) with mounting holes proved useful. It could also be difficult to locate appropriate pins on some mcus that were near each other, as well as supply a proper voltage in order to not fry the mcu input pins.
 
@@ -238,13 +275,17 @@ The small, loose wires going to the transceivers could also be prone to transien
     <figcaption>A fystec sb can th board</figcaption>
 </figure>
 
-For users who manually switched tools between prints, bridge mode resulted in an much streamlined layout.
+For users who manually switched tools between prints, bridge mode resulted in a much streamlined layout.
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    t0[tool]
-    primary["primary mcu with onboard transceiver"]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    t0[[tool]]:::term
+    primary[["primary mcu with onboard transceiver"]]:::term
 
     sbc <--USB--> primary <--molex microfit--> t0 
 ```
@@ -267,55 +308,67 @@ to change from extruder to laser.
 <figure>
     <img src="https://raw.githubusercontent.com/willpuckett/kb_can/master/images/flsun_sr_bridge.jpeg"
          alt="An Flsun SR configured with canbus bridge mode. The delta arms only hold one tool at a time, but tools can be switched at the effector plate">
-    <figcaption>An Flsun SR configured with canbus bridge mode. The delta arms only hold one tool at a time, but tools can be switched at the effector plate. Note the U2C is only being used as a transceiver.</figcaption>
+    <figcaption>An Flsun SR configured with canbus bridge mode. The delta arms only hold one tool at a time, but tools can be modularly switched at the effector plate. Note the U2C is only being used as a transceiver.</figcaption>
 </figure>
 
 ### A Few Addition Topological Notes
 
 For our topological scenarios, we had only a single canbus connected to the host. However, a host may have multiple canbusses connected. The host may communicate with mcus on different busses all in the context of a single Klipper device.
 
-A host may also run multiple Klipper processes, called instances. Each instance may communicate with mcus on any of the canbusses, however, it often makes sense topologically to have a the primary mcu on each printer configured in canbus bridge mode and have all of its canbus nodes connected to it. Such a topology means that a canbus can be powered down when its instance is idle--without affecting other instances.
+A host may also run multiple Klipper processes, called instances. Each instance may communicate with mcus on any of the canbusses, however, it often makes sense topologically to have the primary mcu on each printer configured in canbus bridge mode and have all of its canbus nodes connected to it. Such a topology means that a canbus can be powered down when its instance is idle--without affecting other instances.
 
 A multi-instance canbus topology might look like this:
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    t0[tool]
-    t1[tool]
-    t2[tool]
-    primary0["primary mcu with onboard transceiver"]
-    primary1["primary mcu with onboard transceiver"]
-    primary2["primary mcu with onboard transceiver"]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    t0[[tool]]:::term
+    t1[[tool]]:::term
+    t2[[tool]]:::term
+    primary0[["primary mcu with onboard transceiver"]]:::term
+    primary1[["primary mcu with onboard transceiver"]]:::term
+    primary2[["primary mcu with onboard transceiver"]]:::term
 
     sbc <--USB---> primary0 <--molex microfit--> t0 
     sbc <--USB---> primary1 <--molex microfit--> t1 
     sbc <--USB---> primary2 <--molex microfit--> t2 
 ```
 
-We tended to build our topologies around a star shape, but canbus can be daisy chained as well. It would work perfectly well to do something like
+The most correct way to wire the bus is to go from one node to the next to the next.
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    t0[tool]
-    t1[tool]
-    t2[tool]
-    primary["primary mcu with onboard transciever"]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    t0[tool]:::can
+    t1[tool]:::can
+    t2[[tool]]:::term
+    primary[["primary mcu with onboard transciever"]]:::term
 
     sbc <--USB--> primary <--molex microfit--> t0 
     t0 <--molex microfit--> t1 <--molex microfit--> t2
 ```
 
-However, most boards don't break out ports for daisy chaining, and the cabling could end up being a little awkward. Usually mostly star works well for tools, but if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, that would be just fine.
+However, some tool boards don't break out pins for extending the bus linearly. So if the canbus needed to make a stop off on the way to tools for say a gantry mounted x axis motor and endstop, it could use a short stub. There should never be a long stub. 
 
 ```mermaid
 graph TD;
-    sbc["Klipper Host (Raspberry Pi)"]
-    x[gantry mounted x motor & endstop]
-    t0[tool]
-    t1[tool]
-    primary["primary mcu with onboard transciever"]
+    classDef term stroke:#f00
+    classDef can stroke:#0f0
+    classDef nc stroke:#00f
+
+    sbc["Klipper Host (Raspberry Pi)"]:::can
+    x[gantry mounted x motor & endstop]:::can
+    t0[tool]:::can
+    t1[tool]:::term
+    primary["primary mcu with onboard transciever"]:::term
 
     sbc <--USB--> primary <--molex microfit--> x 
     x <--molex microfit--> t0 & t1
@@ -355,7 +408,7 @@ For a more thorough top-to-bottom guide to the  process of installing Katapult a
 
 With multiple mcus, it becomes especially cumbersome to manually configure menuconfig for each mcu on every update.
 
-You probably used kiauh to set up Klipper, and it does have menus for building an flashing, but those don't include the capability to flash via canbus.
+You probably used kiauh to set up Klipper, and it does have menus for building and flashing, but those don't include the capability to flash via canbus.
 
 [update_klipper_and_mcus](https://github.com/fbeauKmi/update_klipper_and_mcus) runs updates on mcus configured in its `mcus.ini` file. It only updates Klipper.
 
