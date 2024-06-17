@@ -16,7 +16,7 @@ Klipper allows the use of multi-MCU in these cases. These additional MCUs may be
 
 ## What is CAN bus
 
-CAN bus is a *linear network topology*. CAN stands for __Controller Area Network__. Originating from the early 1980's, CAN bus grew popular in the automotive industry to connect all the various pieces of a car, and for factory floor automation. CAN bus runs on two wires, CAN High (can_h), and CAN Low (can_l). These two wires carry a *differential signal*, that is, the same magnitude signal where one is positive and the other negative, i.e. $|can_l| = |can_h|$. By twisting the wires of this differential pair, greater resilience to interference is created, because the difference between the signals is still the same.
+CAN bus is a *linear network topology*. CAN stands for __Controller Area Network__. Originating from the early 1980's, CAN bus grew popular in the automotive industry to connect all the various pieces of a car, and for factory floor automation. CAN bus runs on two wires, CAN High (can_h), and CAN Low (can_l). These two wires carry a *differential signal*, that is, the same magnitude signal where one is positive and the other negative, i.e. abs(can_l) = abs(can_h). By twisting the wires of this differential pair, greater resilience to interference is created, because the difference between the signals is still the same.
 
 The linear topology of CAN bus means that each device on the bus communicates with every other device. This is in contrast to a star topology, where each device communicates with a central hub, and the hub communicates with each device. 
 
